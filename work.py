@@ -2,6 +2,7 @@
 import streamlit as st
 import json
 import paralleldots as para
+import requests
 
 class Database:
     def signup(self):
@@ -90,12 +91,73 @@ class Database:
 
 class API:
     def ner_analysis(self, text):
-            response = para.batch_ner([text])
-            for entity in response['entities']:
-                st.write(f"name ==> { entity[0]['name']} , category ==> { entity[0]['category']}")
+            try:
+                response = para.batch_ner([text])
+                for entity in response['entities']:
+                    st.write(f"name ==> { entity[0]['name']} , category ==> { entity[0]['category']}")
+            except Exception as e:
+                st.error(e)
             
     def check_abuse(self, text):
-            response = para.batch_abuse([text])
-            d = response['abuse'][0]
-            ans = sorted(d, key = lambda x: d[x], reverse=True)[0]
-            st.write(ans)
+            try:
+                response = para.batch_abuse([text])
+                d = response['abuse'][0]
+                ans = sorted(d, key = lambda x: d[x], reverse=True)[0]
+                st.write(ans)
+            except Exception as e:
+                st.error(e)
+
+    def sentiment_analysis(self, text):
+            try:
+                response = para.batch_sentiment([text])
+                d = response['sentiment'][0]
+                ans = sorted(d, key = lambda x: d[x], reverse=True)[0]
+                st.write(ans)
+            except Exception as e:
+                st.error(e)
+
+    def similarity_analysis(self, text1, text2):
+            try:
+                response = para.similarity(text1, text2)
+                st.metric(label="Similarity", value=f"{round(response['similarity_score'] * 100, 2)}%")
+            except Exception as e:
+                st.error(e)
+    def taxonomy_analysis(self, text):
+            try:
+                response = para.batch_taxonomy([text])
+                st.json(response)
+            except Exception as e:
+                st.error(e)
+
+    def emotion_analysis(self, text):
+            try:
+                response = para.batch_emotion([text])
+                d = response['emotion'][0]
+                ans = sorted(d, key = lambda x: d[x], reverse=True)[0]
+                st.write(ans)
+            except Exception as e:
+                st.error(e)
+
+    def sarcasm_analysis(self, text):
+            try:
+                response = para.batch_sarcasm([text])
+                d = response[0]
+                ans = sorted(d, key = lambda x: d[x], reverse=True)[0]
+                st.write(ans)
+            except Exception as e:
+                st.error(e)
+    
+    def intent_analysis(self, text):
+            try:
+                api_key = st.session_state['api_key']
+                response = requests.post("https://apis.paralleldots.com/v4/new/intent", data={ "api_key": api_key, "text":text})
+                st.json(response.json())
+            except Exception as e:
+                st.error(e)
+    
+    def phrase_extractor(self, text):
+            try:
+                response=para.batch_phrase_extractor([text])
+                st.json(response)
+            except Exception as e:
+                st.error(e)
